@@ -1,16 +1,21 @@
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-public class ImagePixelation {
-    static int WIDTH;
-    static int HEIGHT;
-    static int TYPE;
-    static int SQUARE_SIZE = 40;
+public class ImagePixelation extends JPanel {
+    private static int WIDTH;
+    private static int HEIGHT;
+    private static int TYPE;
+    private static int SQUARE_SIZE = 40;
+    private static BufferedImage resultImage;
     
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
     String fileName = "test.jpg";
     BufferedImage image = ImageIO.read(new File(fileName));
     WIDTH = image.getWidth();
@@ -18,17 +23,31 @@ public class ImagePixelation {
     TYPE = image.getType();
 
     System.err.println("Pixelating image of size " + WIDTH + "x" + HEIGHT);
-    BufferedImage pixelatedImage = singleThreadPixelation(image);
+
+    resultImage = new BufferedImage(WIDTH, HEIGHT, TYPE);
+    resultImage.getGraphics().drawImage(image, 0, 0, null);
+
+    JFrame frame = new JFrame("Image Pixelation");
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setSize(1920, 1080);
+
+    JLabel label = new JLabel(new ImageIcon(resultImage));
+    frame.add(label);
+    frame.setVisible(true);
+
+    BufferedImage pixelatedImage = singleThreadPixelation(image, label);
 
     ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
     System.out.println("Pixelated image is saved as result.jpg");
     }
     
-    private static BufferedImage singleThreadPixelation(BufferedImage image) {
-        BufferedImage resultImage = new BufferedImage(WIDTH, HEIGHT, TYPE);
+    private static BufferedImage singleThreadPixelation(BufferedImage image, JLabel label) throws InterruptedException {
         for (int y = 0; y < HEIGHT; y += SQUARE_SIZE) {
             for (int x = 0; x < WIDTH; x += SQUARE_SIZE) {
                 fillSquareWithAverageColor(image, resultImage, x, y);
+                label.setIcon(new ImageIcon(resultImage));
+                label.repaint();
+                Thread.sleep(10);
             }
         }
         return resultImage;
