@@ -5,7 +5,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 
 public class ImagePixelation extends JPanel {
@@ -16,36 +18,43 @@ public class ImagePixelation extends JPanel {
     private static BufferedImage resultImage;
     
     public static void main(String[] args) throws IOException, InterruptedException {
-    String fileName = "test.jpg";
-    BufferedImage image = ImageIO.read(new File(fileName));
-    WIDTH = image.getWidth();
-    HEIGHT = image.getHeight();
-    TYPE = image.getType();
+        String fileName = "test.jpg";
+        BufferedImage image = ImageIO.read(new File(fileName));
+        WIDTH = image.getWidth();
+        HEIGHT = image.getHeight();
+        TYPE = image.getType();
 
-    System.err.println("Pixelating image of size " + WIDTH + "x" + HEIGHT);
+        System.err.println("Pixelating image of size " + WIDTH + "x" + HEIGHT);
 
-    resultImage = new BufferedImage(WIDTH, HEIGHT, TYPE);
-    resultImage.getGraphics().drawImage(image, 0, 0, null);
+        resultImage = new BufferedImage(WIDTH, HEIGHT, TYPE);
+        resultImage.getGraphics().drawImage(image, 0, 0, null);
 
-    JFrame frame = new JFrame("Image Pixelation");
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(1920, 1080);
+        // Create a window to display the image
+        JFrame frame = new JFrame("Image Pixelation");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 800);
+        JLabel label = new JLabel(new ImageIcon(resultImage));
+        frame.add(label);
+        frame.setVisible(true);
 
-    JLabel label = new JLabel(new ImageIcon(resultImage));
-    frame.add(label);
-    frame.setVisible(true);
+        // Scale the image to fit the window
+        int frameWidth = frame.getWidth();
+        int frameHeight = frame.getHeight();
+        double scaleFactor = Math.min((double) frameWidth / WIDTH, (double) frameHeight / HEIGHT);
+        int scaledWidth = (int) (WIDTH * scaleFactor);
+        int scaledHeight = (int) (HEIGHT * scaleFactor);
 
-    BufferedImage pixelatedImage = singleThreadPixelation(image, label);
-
-    ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
-    System.out.println("Pixelated image is saved as result.jpg");
+        BufferedImage pixelatedImage = singleThreadPixelation(image, label, scaledWidth, scaledHeight);
+        ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
+        System.out.println("Pixelated image is saved as result.jpg");
     }
     
-    private static BufferedImage singleThreadPixelation(BufferedImage image, JLabel label) throws InterruptedException {
+    private static BufferedImage singleThreadPixelation(BufferedImage image, JLabel label, int scaledWidth, int scaledHeight) throws InterruptedException {
         for (int y = 0; y < HEIGHT; y += SQUARE_SIZE) {
             for (int x = 0; x < WIDTH; x += SQUARE_SIZE) {
                 fillSquareWithAverageColor(image, resultImage, x, y);
-                label.setIcon(new ImageIcon(resultImage));
+                Image scaledImage = resultImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+                label.setIcon(new ImageIcon(scaledImage));
                 label.repaint();
                 Thread.sleep(10);
             }
@@ -56,7 +65,6 @@ public class ImagePixelation extends JPanel {
     private static void fillSquareWithAverageColor(BufferedImage image, BufferedImage resultImage, int startX, int startY) {
         int widthToFill = Math.min(SQUARE_SIZE, WIDTH - startX);
         int heightToFill = Math.min(SQUARE_SIZE, HEIGHT - startY);
-
         int R = 0;
         int G = 0;
         int B = 0;
@@ -71,7 +79,6 @@ public class ImagePixelation extends JPanel {
                 pixelCount++;
             }
         }
-    
         int avgRGB = getAverageRGB(R, G, B, pixelCount);
         fillArea(resultImage, startX, startY, avgRGB);
     }
