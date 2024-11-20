@@ -1,25 +1,30 @@
 import java.io.File;
 import java.io.IOException;
+import javax.swing.Timer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 
-public class ImagePixelation extends JPanel {
+public class ImagePixelation {
     private static int WIDTH;
     private static int HEIGHT;
     private static int TYPE;
     private static int SQUARE_SIZE = 40;
     private static BufferedImage resultImage;
+    private static BufferedImage image;
     
     public static void main(String[] args) throws IOException, InterruptedException {
         String fileName = "test.jpg";
-        BufferedImage image = ImageIO.read(new File(fileName));
+        image = ImageIO.read(new File(fileName));
         WIDTH = image.getWidth();
         HEIGHT = image.getHeight();
         TYPE = image.getType();
@@ -44,7 +49,8 @@ public class ImagePixelation extends JPanel {
         int scaledWidth = (int) (WIDTH * scaleFactor);
         int scaledHeight = (int) (HEIGHT * scaleFactor);
 
-        BufferedImage pixelatedImage = singleThreadPixelation(image, label, scaledWidth, scaledHeight);
+        //BufferedImage pixelatedImage = singleThreadPixelation(image, label, scaledWidth, scaledHeight);
+        BufferedImage pixelatedImage = multiThreadPixelation(image, label, scaledWidth, scaledHeight);
         ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
         System.out.println("Pixelated image is saved as result.jpg");
     }
@@ -53,8 +59,6 @@ public class ImagePixelation extends JPanel {
         for (int y = 0; y < HEIGHT; y += SQUARE_SIZE) {
             for (int x = 0; x < WIDTH; x += SQUARE_SIZE) {
                 fillSquareWithAverageColor(image, resultImage, x, y);
-                Image scaledImage = resultImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
-                label.setIcon(new ImageIcon(scaledImage));
                 label.repaint();
                 Thread.sleep(10);
             }
@@ -62,6 +66,53 @@ public class ImagePixelation extends JPanel {
         return resultImage;
     }
 
+    private static BufferedImage multiThreadPixelation(BufferedImage image, JLabel label, int scaledWidth, int scaledHeight) throws InterruptedException {
+        int numOfThreads = Runtime.getRuntime().availableProcessors();
+        int threadRows = HEIGHT / numOfThreads;
+        ExecutorService executorService = Executors.newFixedThreadPool(numOfThreads);
+
+        displayScaledImage(label, scaledWidth, scaledHeight);
+        
+        for (int i = 0; i < numOfThreads; i++) {
+            int startY = i * threadRows;
+            int endY = Math.min(startY + threadRows, HEIGHT);
+            executorService.submit(() -> pixelateRows(image, startY, endY));
+        }
+        Timer timer = new Timer(50, e -> {
+            displayScaledImage(label, scaledWidth, scaledHeight);
+            
+        });
+        timer.start();
+        executorService.shutdown();
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        timer.stop();
+    
+        displayScaledImage(label, scaledWidth, scaledHeight);
+        return resultImage;
+    }
+
+    private static void pixelateRows(BufferedImage image, int startY, int endY) {
+        for (int y = startY; y < endY; y += SQUARE_SIZE) {
+            for (int x = 0; x < WIDTH; x += SQUARE_SIZE) {
+                synchronized (resultImage) {
+                    fillSquareWithAverageColor(image, resultImage, x, y);
+                }
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+
+    private static Image displayScaledImage(JLabel label, int scaledWidth, int scaledHeight) {
+        Image scaledImage = resultImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+        label.setIcon(new ImageIcon(scaledImage));
+        label.repaint();
+        return scaledImage;
+    }
+    
     private static void fillSquareWithAverageColor(BufferedImage image, BufferedImage resultImage, int startX, int startY) {
         int widthToFill = Math.min(SQUARE_SIZE, WIDTH - startX);
         int heightToFill = Math.min(SQUARE_SIZE, HEIGHT - startY);
