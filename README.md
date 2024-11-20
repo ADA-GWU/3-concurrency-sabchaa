@@ -23,10 +23,10 @@ Processes test.jpg with square size 20 in single-threaded mode.
 Processes test.jpg with square size 20 in multi-threaded mode.
 
 #### Input image
-![alt text](test.jpg)
+![alt text](images/test.jpg)
 
 #### Processed image
-![alt text](result.jpg)
+![alt text](images/result.jpg)
 The pixelated image is saved to result.jpg in the current directory.
 
 ### Used libraries
