@@ -92,7 +92,7 @@ public class ImagePixelation {
         for (int y = 0; y < HEIGHT; y += SQUARE_SIZE) {
             for (int x = 0; x < WIDTH; x += SQUARE_SIZE) {
                 fillSquareWithAverageColor(image, resultImage, x, y);
-                label.repaint();
+                displayScaledImage(label, scaledWidth, scaledHeight);
                 Thread.sleep(10);
             }
         }
