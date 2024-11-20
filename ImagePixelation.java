@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import javax.swing.Timer;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -147,7 +148,7 @@ public class ImagePixelation {
     }
     private static boolean validateArgs(String[] args) {
         if (args.length != 3) {
-            System.err.println("Usage: java YourProgram <filename> <squareSize> <mode>");
+            System.err.println("Usage: java ImagePixelation <filename> <squareSize> <mode>");
             return false;
         }
     

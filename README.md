@@ -1,1 +1,38 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/YybNWfh8)
+### Project Overview
+
+This project is part of Advanced Software Paradigms course at ADA University. This project implements averaging operation on an image by dividing it into squares of a specified size and assigning each square the average color of its pixels. It can be performed using single-threaded or multi-threaded approach. The pixelation effect is displayed dynamically, with squares being updated progressively.
+
+### Usage
+##### Compile the program
+`java ImagePixelation.java`
+
+##### Run the program
+`java ImagePixelation <filename> <squareSize> <mode>`
+
+- filename: Path to the image file to process.
+- squareSize: Size of the squares for pixelation.
+- mode: S (Single-threaded processing) or M (Multi-threaded processing)
+
+### Example
+##### For ingle-threaded processing:
+`java ImagePixelation test.jpg 20 S`
+Processes test.jpg with square size 20 in single-threaded mode.
+
+##### For multi-threaded processing:
+`java ImagePixelation test.jpg 20 M`
+Processes test.jpg with square size 20 in multi-threaded mode.
+
+#### Input image
+![alt text](test.jpg)
+
+#### Processed image
+![alt text](result.jpg)
+The pixelated image is saved to result.jpg in the current directory.
+
+### Used libraries
+- Java Swing - Used for the graphical user interface.
+- Java ImageIO - Used for handling image input and output.
+- Java IO - Handles file operations.
+- Java AWT - For image scaling and color management.
+- Multi-threading - Uses Java’s ExecutorService for multi-threaded processing.
+
