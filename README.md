@@ -8,10 +8,14 @@ This project is part of Advanced Software Paradigms course at ADA University. Th
 - Java 8 or higher
 
 ##### Compile the program
-```java ImagePixelation.java```
+```
+java ImagePixelation.java
+```
 
 ##### Run the program
-```java ImagePixelation <filename> <squareSize> <mode>```
+```
+java ImagePixelation <filename> <squareSize> <mode>
+```
 
 - filename: Path to the image file to process. File should be in JPG format.
 - squareSize: Size of the squares for pixelation.
@@ -19,11 +23,15 @@ This project is part of Advanced Software Paradigms course at ADA University. Th
 
 ### Example
 ##### For ingle-threaded processing:
-```java ImagePixelation test.jpg 20 S```
+```
+java ImagePixelation test.jpg 20 S
+```
 Processes test.jpg with square size 20 in single-threaded mode.
 
 ##### For multi-threaded processing:
-```java ImagePixelation test.jpg 20 M```
+```
+java ImagePixelation test.jpg 20 M
+```
 Processes test.jpg with square size 20 in multi-threaded mode.
 
 #### Input image
