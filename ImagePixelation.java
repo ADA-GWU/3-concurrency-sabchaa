@@ -18,13 +18,37 @@ public class ImagePixelation {
     private static int WIDTH;
     private static int HEIGHT;
     private static int TYPE;
-    private static int SQUARE_SIZE = 40;
+    private static int SQUARE_SIZE;
     private static BufferedImage resultImage;
-    private static BufferedImage image;
     
     public static void main(String[] args) throws IOException, InterruptedException {
-        String fileName = "test.jpg";
-        image = ImageIO.read(new File(fileName));
+        if (args.length != 3) {
+            System.err.println("Usage: java YourProgram <filename> <squareSize> <mode>");
+            return;
+        }
+        
+        String fileName = args[0];
+        SQUARE_SIZE = Integer.parseInt(args[1]);
+        String mode = args[2].toUpperCase();
+
+        if (SQUARE_SIZE <= 0) {
+            System.err.println("Invalid square size, provide a positive integer");
+            return;
+        }
+
+        if (!mode.equals("S") && !mode.equals("M")) {
+            System.err.println("Invalid mode, use 'S' for single-threaded or 'M' for multi-threaded pixelation");
+            return;
+        }
+
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(new File(fileName));
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return;
+        }
+
         WIDTH = image.getWidth();
         HEIGHT = image.getHeight();
         TYPE = image.getType();
@@ -49,9 +73,18 @@ public class ImagePixelation {
         int scaledWidth = (int) (WIDTH * scaleFactor);
         int scaledHeight = (int) (HEIGHT * scaleFactor);
 
-        //BufferedImage pixelatedImage = singleThreadPixelation(image, label, scaledWidth, scaledHeight);
-        BufferedImage pixelatedImage = multiThreadPixelation(image, label, scaledWidth, scaledHeight);
-        ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
+        BufferedImage pixelatedImage = null;
+        if(mode.equals("S")) {
+            pixelatedImage = singleThreadPixelation(image, label, scaledWidth, scaledHeight);
+        } else {
+            pixelatedImage = multiThreadPixelation(image, label, scaledWidth, scaledHeight);
+        }
+        try {
+            ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
+            System.out.println("Pixelated image saved as result.jpg");
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
         System.out.println("Pixelated image is saved as result.jpg");
     }
     
