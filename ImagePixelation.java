@@ -22,70 +22,31 @@ public class ImagePixelation {
     private static BufferedImage resultImage;
     
     public static void main(String[] args) throws IOException, InterruptedException {
-        if (args.length != 3) {
-            System.err.println("Usage: java YourProgram <filename> <squareSize> <mode>");
+        if (!validateArgs(args)) {
             return;
         }
-        
         String fileName = args[0];
         SQUARE_SIZE = Integer.parseInt(args[1]);
         String mode = args[2].toUpperCase();
 
-        if (SQUARE_SIZE <= 0) {
-            System.err.println("Invalid square size, provide a positive integer");
-            return;
-        }
-
-        if (!mode.equals("S") && !mode.equals("M")) {
-            System.err.println("Invalid mode, use 'S' for single-threaded or 'M' for multi-threaded pixelation");
-            return;
-        }
-
-        BufferedImage image = null;
-        try {
-            image = ImageIO.read(new File(fileName));
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            return;
-        }
-
-        WIDTH = image.getWidth();
-        HEIGHT = image.getHeight();
-        TYPE = image.getType();
-
-        System.err.println("Pixelating image of size " + WIDTH + "x" + HEIGHT);
-
-        resultImage = new BufferedImage(WIDTH, HEIGHT, TYPE);
-        resultImage.getGraphics().drawImage(image, 0, 0, null);
-
-        // Create a window to display the image
+        BufferedImage image = loadImage(fileName);
+        getImageProps(image);
+        
         JFrame frame = new JFrame("Image Pixelation");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 800);
+        
         JLabel label = new JLabel(new ImageIcon(resultImage));
         frame.add(label);
         frame.setVisible(true);
+        
+        int[] getScaledResolution = getScaledResolution(frame);
+        int scaledWidth = getScaledResolution[0];
+        int scaledHeight = getScaledResolution[1];
 
-        // Scale the image to fit the window
-        int frameWidth = frame.getWidth();
-        int frameHeight = frame.getHeight();
-        double scaleFactor = Math.min((double) frameWidth / WIDTH, (double) frameHeight / HEIGHT);
-        int scaledWidth = (int) (WIDTH * scaleFactor);
-        int scaledHeight = (int) (HEIGHT * scaleFactor);
-
-        BufferedImage pixelatedImage = null;
-        if(mode.equals("S")) {
-            pixelatedImage = singleThreadPixelation(image, label, scaledWidth, scaledHeight);
-        } else {
-            pixelatedImage = multiThreadPixelation(image, label, scaledWidth, scaledHeight);
-        }
-        try {
-            ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
-            System.out.println("Pixelated image saved as result.jpg");
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        }
-        System.out.println("Pixelated image is saved as result.jpg");
+        BufferedImage pixelatedImage = processImage(mode, image, label, scaledWidth, scaledHeight);
+        
+        saveImage(pixelatedImage);
     }
     
     private static BufferedImage singleThreadPixelation(BufferedImage image, JLabel label, int scaledWidth, int scaledHeight) throws InterruptedException {
@@ -184,4 +145,71 @@ public class ImagePixelation {
             }
         }
     }
+    private static boolean validateArgs(String[] args) {
+        if (args.length != 3) {
+            System.err.println("Usage: java YourProgram <filename> <squareSize> <mode>");
+            return false;
+        }
+    
+        int squareSize = Integer.parseInt(args[1]);
+        if (squareSize <= 0) {
+            System.err.println("Invalid square size, provide a positive integer");
+            return false;
+        }
+    
+        String mode = args[2].toUpperCase();
+        if (!mode.equals("S") && !mode.equals("M")) {
+            System.err.println("Invalid mode, use 'S' for single-threaded or 'M' for multi-threaded pixelation");
+            return false;
+        }
+        return true;
+    }
+    
+    private static void getImageProps(BufferedImage image) {
+        WIDTH = image.getWidth();
+        HEIGHT = image.getHeight();
+        TYPE = image.getType();
+    
+        resultImage = new BufferedImage(WIDTH, HEIGHT, TYPE);
+        resultImage.getGraphics().drawImage(image, 0, 0, null);
+    
+        System.err.println("Pixelating image of size " + WIDTH + "x" + HEIGHT);
+    }
+
+    private static int[] getScaledResolution(JFrame frame) {
+        int frameWidth = frame.getWidth();
+        int frameHeight = frame.getHeight();
+        double scaleFactor = Math.min((double) frameWidth / WIDTH, (double) frameHeight / HEIGHT);
+        int scaledWidth = (int) (WIDTH * scaleFactor);
+        int scaledHeight = (int) (HEIGHT * scaleFactor);
+        return new int[]{scaledWidth, scaledHeight};
+    }
+
+    private static BufferedImage processImage(String mode, BufferedImage image, JLabel label, int scaledWidth, int scaledHeight) throws InterruptedException {
+        if (mode.equals("S")) {
+            return singleThreadPixelation(image, label, scaledWidth, scaledHeight);
+        } else {
+            return multiThreadPixelation(image, label, scaledWidth, scaledHeight);
+        }
+    }
+
+    private static BufferedImage loadImage(String fileName) {
+        try {
+            return ImageIO.read(new File(fileName));
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return null;
+        }
+    }
+
+    private static void saveImage(BufferedImage pixelatedImage) {
+        try {
+            ImageIO.write(pixelatedImage, "jpg", new File("result.jpg"));
+            System.out.println("Pixelated image saved as result.jpg");
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+        System.out.println("Pixelated image is saved as result.jpg");
+    }
 }
+
